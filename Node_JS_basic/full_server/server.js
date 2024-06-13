@@ -1,15 +1,14 @@
 const express = require('express');
-const router = require('./routes/index');
-
 const app = express();
 const port = 1245;
 
-app.use('/', router);
-app.use('/students', router);
-app.use('/students/:major', router);
+const routes = require('./routes');
+
+app.use(express.json()); // Parse JSON data in requests (optional)
+app.use('/', routes); // Use the routes defined in ./routes
 
 app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}`);
+  console.log(`Server listening on port ${port}`);
 });
 
-module.exports = app;
+module.exports = app; // Export the app for testing purposes

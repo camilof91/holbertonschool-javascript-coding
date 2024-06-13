@@ -1,39 +1,42 @@
-const readDatabase = require('../utils');
+const { readDatabase } = require('../utils');
 
 class StudentsController {
-    static getAllStudents(request, response) {
-        readDatabase(process.argv[2])
-            .then((data) => {
-                const printData = [];
-                printData.push('This is the list of our students');
-                for (const field in data) {
-                    if (field) printData.push(`Number of students in ${field}: ${data[field].number}. ${data[field].list}`);
-                }
-                response.send(printData.join('\n'));
-            })
-            .catch((err) => { response.send(err.message); });
+  static async getAllStudents(req, res) {
+    try {
+      const studentData = await readDatabase('database.csv'); // Replace with actual path
+
+      const output = ['This is the list of our students'];
+      for (const field in studentData) {
+        const students = studentData[field];
+        students.sort(); // Sort first names alphabetically (case-insensitive)
+        output.push(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
+      }
+
+      res.status(200).send(output.join('\n'));
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Cannot load the database');
+    }
+  }
+
+  static async getAllStudentsByMajor(req, res) {
+    const { major } = req.params;
+
+    if (!['CS', 'SWE'].includes(major.toUpperCase())) {
+      return res.status(500).send('Major parameter must be CS or SWE');
     }
 
-    static getAllStudentsByMajor(request, response) {
-        if (!['SWE', 'CS'].includes(request.params.major)) {
-          return response.status(500).send('Major parameter must be CS or SWE');
-        }
-      
-        readDatabase(process.argv[2])
-          .then((data) => {
-            if (Object.keys(data).length > 0) {
-              response.send(data[request.params.major].list);
-            } else {
-              response.status(500).send('Cannot load the database');
-            }
-          })
-          .catch((err) => {
-            // Manejar el error de forma adecuada (por ejemplo, registrar el error)
-            console.error(err.message);
-            // Considerar lanzar un error para propagarlo más adelante
-            throw err;
-          });
-      }
+    try {
+      const studentData = await readDatabase('database.csv'); // Replace with actual path
+      const students = studentData[major.toUpperCase()] || [];
+      students.sort();
+
+      res.status(200).send(`List: ${students.join(', ')}`);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Cannot load the database');
+    }
+  }
 }
 
 module.exports = StudentsController;
