@@ -15,16 +15,25 @@ class StudentsController {
     }
 
     static getAllStudentsByMajor(request, response) {
-        if (!['SWE', 'CS'].includes(request.params.major)) response.status(500).send('Major parameter must be CS or SWE');
-        else {
-            readDatabase(process.argv[2])
-                .then((data) => {
-                    if (Object.keys(data).length > 0) response.send(data[request.params.major].list);
-                    response.send(500, 'Cannot load the database');
-                })
-                .catch((err) => { response.send(err.message); });
+        if (!['SWE', 'CS'].includes(request.params.major)) {
+          return response.status(500).send('Major parameter must be CS or SWE');
         }
-    }
+      
+        readDatabase(process.argv[2])
+          .then((data) => {
+            if (Object.keys(data).length > 0) {
+              response.send(data[request.params.major].list);
+            } else {
+              response.status(500).send('Cannot load the database');
+            }
+          })
+          .catch((err) => {
+            // Manejar el error de forma adecuada (por ejemplo, registrar el error)
+            console.error(err.message);
+            // Considerar lanzar un error para propagarlo más adelante
+            throw err;
+          });
+      }
 }
 
 module.exports = StudentsController;
